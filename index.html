@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OCR CAPTCHA Solver</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        #captcha-img {
+            display: block;
+            margin: 20px auto;
+            max-width: 100%;
+            height: auto;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            text-align: center;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            font-size: 1em;
+            margin-top: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background-color: #007BFF;
+            color: white;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OCR CAPTCHA Solver</h1>
+        <img id="captcha-img" src="/captcha-image" alt="Captcha Image" />
+        <button id="reload-btn">Reload CAPTCHA</button>
+        <button id="solve-btn">Solve CAPTCHA</button>
+        <div id="result"></div>
+    </div>
+    <script>
+        document.getElementById('reload-btn').addEventListener('click', () => {
+            fetch('/captcha-image')
+                .then(res => res.blob())
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    document.getElementById('captcha-img').src = url;
+                    document.getElementById('result').innerText = '';
+                });
+        });
+        document.getElementById('solve-btn').addEventListener('click', () => {
+            document.getElementById('result').innerText = 'Processing...';
+            fetch('/solve-captcha', {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('result').innerText = 'Captcha Text: ' + data.text;
+                } else {
+                    document.getElementById('result').innerText = 'Failed to solve captcha.';
+                }
+            })
+            .catch(() => {
+                document.getElementById('result').innerText = 'Error occurred.';
+            });
+        });
+        // Initial load of captcha
+        window.onload = () => {
+            document.getElementById('reload-btn').click();
+        };
+    </script>
+</body>
+</html>
